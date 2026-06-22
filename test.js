@@ -1,6 +1,6 @@
-const TextParserV1 = require(`${__dirname}/text-parser-v1.js`);
+require(`${__dirname}/text-parser-v1.js`);
 
-const parser = TextParserV1.create([
+const grammars1 = [
   ["$inject.source(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Inject Source", inner: token.inner, location: token.location };
   }],
@@ -31,7 +31,9 @@ const parser = TextParserV1.create([
   ["/**", "*/", (token) => {
     return { type: "Javadoc Comment", inner: token.inner, location: token.location };
   }],
-]);
+];
+
+const parser = TextParserV1.create(grammars1);
 
 const output1 = parser.parse(`
 /**
@@ -53,18 +55,16 @@ parser.assert(typeof formatted1[3] === "object", "Outputs a list of objects ( po
 parser.assert(formatted1[0].type === "Javadoc Comment", "Catches javadoc comments ( point 5 )");
 
 Ejemplo_del_readme: {
-  const matches = TextParserV1.create([
-    ["/*", "*/", (token, output, index, grammar, grammarIndex, text) => {
-      return { type: "multiline", loc: token.location.join("-") };
-    }],
-    ["//", "\n", (token, output, index, grammar, grammarIndex, text) => {
-      return { type: "oneline", loc: token.location.join("-") };
-    }],
-  ]).parse(`
-// All comments will be catched
+  const matches = TextParserV1.create(grammars1.concat([
+    ["//", "\n", null],
+    ["/*", "*/", null],
+  ])).parse(`
+// All comments will be catched (except when oneline command in last line of document)
 /* One line and multiline comments */
+$inject.source(y aqui lo que sea)
 `);
-  console.log(JSON.stringify(matches, null, 2));
+  parser.assert(matches.formatted.length === 3, "Tokenizes default grammars + 2 new improvised grammars");
+  // console.log(JSON.stringify(matches, null, 2));
 }
 
 Ejemplo_de_fallo_por_no_cierre: {

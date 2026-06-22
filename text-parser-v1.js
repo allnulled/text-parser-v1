@@ -1,7 +1,8 @@
 (function (mod) {
   if (typeof window !== 'undefined') window['TextParserV1'] = mod;
   if (typeof global !== 'undefined') global['TextParserV1'] = mod;
-  if (typeof module !== 'undefined') module.exports = mod;
+  // if (typeof module !== 'undefined') module.exports = mod;
+  return mod;
 })(function () {
   // @source: https://github.com/allnulled/text-parser-v1/blob/main/text-parser-v1.js
   const TextParserV1 = class TextParserV1 {
@@ -101,8 +102,8 @@
                     wasEnded = true;
                     state.output.push({
                       type: starter,
-                      location: [state.position, currentPosition+1],
-                      text: text.substring(state.position, currentPosition+1),
+                      location: [state.position, currentPosition],
+                      text: text.substring(state.position, currentPosition),
                       inner: text.substring(countingFrom, currentPosition),
                     });
                     break Processing_match;
