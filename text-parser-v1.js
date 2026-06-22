@@ -3,6 +3,7 @@
   if (typeof global !== 'undefined') global['TextParserV1'] = mod;
   if (typeof module !== 'undefined') module.exports = mod;
 })(function () {
+  // @source: https://github.com/allnulled/text-parser-v1/blob/main/text-parser-v1.js
   const TextParserV1 = class TextParserV1 {
     static default = this;
     static symbols = {

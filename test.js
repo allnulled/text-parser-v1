@@ -51,3 +51,18 @@ parser.assert(typeof formatted1[1] === "object", "Outputs a list of objects ( po
 parser.assert(typeof formatted1[2] === "object", "Outputs a list of objects ( point 3 )");
 parser.assert(typeof formatted1[3] === "object", "Outputs a list of objects ( point 4 )");
 parser.assert(formatted1[0].type === "Javadoc Comment", "Catches javadoc comments ( point 5 )");
+
+Ejemplo_del_readme: {
+  const matches = TextParserV1.create([
+    ["/*", "*/", (token, output, index, grammar, grammarIndex, text) => {
+      return { type: "multiline", match: token };
+    }],
+    ["//", "\n", (token, output, index, grammar, grammarIndex, text) => {
+      return { type: "oneline", match: token };
+    }],
+  ]).parse(`
+// All comments will be catched
+/* One line and multiline comments */
+`);
+  console.log(JSON.stringify(matches, null, 2));
+}

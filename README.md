@@ -7,20 +7,64 @@ Importar `text-parser-v1.js`.
 ## Uso
 
 ```js
-require(`${__dirname}/text-parser-v1.js`);
+Ejemplo_del_readme: {
+  const matches = TextParserV1.create([
+    ["/*", "*/", (token, output, index, grammar, grammarIndex, text) => {
+      return { type: "multiline", match: token };
+    }],
+    ["//", "\n", (token, output, index, grammar, grammarIndex, text) => {
+      return { type: "oneline", match: token };
+    }],
+  ]).parse(`
+    // All comments will be catched
+    /* One line and multiline comments */
+  `);
+  console.log(JSON.stringify(matches, null, 2));
+}
+```
 
-const matches = TextParserV1.create([
-    ["/*", "*/", null, null],
-    ["//", "\n", null, null],
-]).parse(`
+Este ejemplo produce esta salida:
 
-// All comments will be catched
+```json
+{
+  "size": 71,
+  "text": "\n// All comments will be catched\n/* One line and multiline comments */\n",
+  "tokens": [
+    {
+      "type": "//",
+      "location": "1-33",
+      "text": "// All comments will be catched\n",
+      "inner": " All comments will be catched"
+    },
+    {
+      "type": "/*",
+      "location": "33-70",
+      "text": "/* One line and multiline comments */",
+      "inner": " One line and multiline comments "
+    }
+  ],
+  "formatted": [
+    {
+      "type": "oneline",
+      "match": {
+        "type": "//",
+        "location": "1-33",
+        "text": "// All comments will be catched\n",
+        "inner": " All comments will be catched"
+      }
+    },
+    {
+      "type": "multiline",
+      "match": {
+        "type": "/*",
+        "location": "33-70",
+        "text": "/* One line and multiline comments */",
+        "inner": " One line and multiline comments "
+      }
+    }
+  ]
+}
 
-/* One line and multiline comments */
-
-`);
-
-console.log(matches);
 ```
 
 ## Método parse
