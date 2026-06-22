@@ -26,4 +26,4 @@ pwd > cwd.txt
     -e "html" \
     -e "md" \
     -x 'node test.js --from @{refrescador.file}' \
-    -mf "README.md" \
+    -mf "TODO.md" \

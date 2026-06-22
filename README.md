@@ -137,7 +137,7 @@ module.exports = {
 };
 `);
 const formatted1 = output1.formatted;
-console.log(formatted1);
+
 parser.assert(typeof formatted1[0] === "object", "Outputs a list of objects ( point 1 )");
 parser.assert(typeof formatted1[1] === "object", "Outputs a list of objects ( point 2 )");
 parser.assert(typeof formatted1[2] === "object", "Outputs a list of objects ( point 3 )");

@@ -45,7 +45,7 @@ module.exports = {
 };
 `);
 const formatted1 = output1.formatted;
-console.log(formatted1);
+
 parser.assert(typeof formatted1[0] === "object", "Outputs a list of objects ( point 1 )");
 parser.assert(typeof formatted1[1] === "object", "Outputs a list of objects ( point 2 )");
 parser.assert(typeof formatted1[2] === "object", "Outputs a list of objects ( point 3 )");
@@ -55,14 +55,36 @@ parser.assert(formatted1[0].type === "Javadoc Comment", "Catches javadoc comment
 Ejemplo_del_readme: {
   const matches = TextParserV1.create([
     ["/*", "*/", (token, output, index, grammar, grammarIndex, text) => {
-      return { type: "multiline", match: token };
+      return { type: "multiline", loc: token.location.join("-") };
     }],
     ["//", "\n", (token, output, index, grammar, grammarIndex, text) => {
-      return { type: "oneline", match: token };
+      return { type: "oneline", loc: token.location.join("-") };
     }],
   ]).parse(`
 // All comments will be catched
 /* One line and multiline comments */
 `);
   console.log(JSON.stringify(matches, null, 2));
+}
+
+Ejemplo_de_fallo_por_no_cierre: {
+  let passed = false;
+  try {
+    parser.parse("/**y aqui da igual pero si no cierras se queja");
+  } catch (error) {
+    parser.assert(error.message.startsWith("Unclosed starter of grammar"));
+    passed = true;
+  }
+  parser.assert(passed, `Debe fallar por ausencia de gramática de cierre en gramáricas de final hardcodeado`);
+}
+
+Ejemplo_de_fallo_por_no_cierre_en_balanceo_de_parentesis: {
+  let passed = false;
+  try {
+    parser.parse("$inject.source(y aqui da igual excepto porque no cierras");
+  } catch (error) {
+    parser.assert(error.message.startsWith("Unclosed starter of grammar"));
+    passed = true;
+  }
+  parser.assert(passed, `Debe fallar por ausencia de gramática de cierre en gramaticas de parentesis balanceados`);
 }

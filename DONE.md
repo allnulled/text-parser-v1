@@ -1,0 +1,3 @@
+- [ ] Si solo vas a hacer 1 comprobación:
+   - [ ] mejor .startsWith(texto, pos) y .endsWith(texto,pos)
+   - [ ] que no .slice(texto, pos) y operación en cada caso

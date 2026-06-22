@@ -39,13 +39,13 @@
     _processTokens(text, tokens) {
       const formattedOutput = {size:text.length,text,tokens,formatted:[]};
       Iterating_tokens:
-      for(let tokenIndex in tokens) {
-        const token = tokens[tokenIndex];
+      for(let indexToken = 0; indexToken < tokens.length; indexToken++) {
+        const token = tokens[indexToken];
         Iterating_grammars:
         for(let indexGrammar=0; indexGrammar<this.grammars.length; indexGrammar++) {
           const grammar = this.grammars[indexGrammar];
           if(grammar[0] === token.type) {
-            const formattedToken = grammar[2].call(this, token, formattedOutput, tokenIndex, grammar, indexGrammar, text);
+            const formattedToken = grammar[2].call(this, token, formattedOutput, indexToken, grammar, indexGrammar, text);
             formattedOutput.formatted.push(formattedToken);
             break Iterating_grammars;
           }
@@ -64,19 +64,21 @@
         for (let index = 0; index < this.grammars.length; index++) {
           const grammar = this.grammars[index];
           const [starter, ender] = grammar;
-          const isMatchingStarter = text.slice(state.position).startsWith(starter);
+          const isMatchingStarter = text.startsWith(starter, state.position);
           Processing_match:
           if (isMatchingStarter) {
             const countingFrom = state.position + starter.length;
             let offset = 0;
+            let wasEnded = false;
             if (typeof ender === "string") {
               while ((countingFrom + offset) < text.length) {
                 const currentPosition = countingFrom + offset;
-                const isMatchingEnder = text.slice(currentPosition).startsWith(ender);
+                const isMatchingEnder = text.startsWith(ender, currentPosition);
                 if (isMatchingEnder) {
+                  wasEnded = true;
                   state.output.push({
                     type: starter,
-                    location: `${state.position}-${currentPosition+ender.length}`,
+                    location: [state.position, currentPosition+ender.length],
                     text: text.substring(state.position, currentPosition+ender.length),
                     inner: text.substring(countingFrom, currentPosition),
                   });
@@ -84,8 +86,10 @@
                 }
                 offset++;
               }
+              if(!wasEnded) throw new Error(`Unclosed starter of grammar «${starter}» reached end of text but «${ender}» was not found on grammar index «${index}»`);
             } else if(ender === this.constructor.symbols.PARENTHESYS_BALANCE) {
               let openedParenthesys = 1;
+              let wasEnded = false;
               while ((countingFrom + offset) < text.length) {
                 const currentPosition = countingFrom + offset;
                 // @TODO: meterse dentro de los strings y escapar paréntesis internos
@@ -94,9 +98,10 @@
                 } else if(text[currentPosition] === ")") {
                   openedParenthesys--;
                   if(openedParenthesys === 0) {
+                    wasEnded = true;
                     state.output.push({
                       type: starter,
-                      location: `${state.position}-${currentPosition+1}`,
+                      location: [state.position, currentPosition+1],
                       text: text.substring(state.position, currentPosition+1),
                       inner: text.substring(countingFrom, currentPosition),
                     });
@@ -105,6 +110,7 @@
                 }
                 offset++;
               }
+              if(!wasEnded) throw new Error(`Unclosed starter of grammar «${starter}» reached end of text but the first parenthesys was not closed on grammar index «${index}»`);
             } else {
               throw new Error(`Ender of grammar ${index} is not valid`);
             }
