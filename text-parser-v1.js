@@ -124,8 +124,8 @@
           } else {
             throw new Error(`Ender (2nd argument) of grammar «${starter}» at grammar index «${index}» has not valid type: «${typeof ender}»`);
           }
-          if (typeof options.onMatchOffset === "function") {
-            state.position += options.onMatchOffset.call(this, { text, state, grammar, });
+          if (options.allowInside) {
+            state.position += starter.length;
           } else {
             state.position += offset;
           }

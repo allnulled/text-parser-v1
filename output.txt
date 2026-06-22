@@ -1,0 +1,126 @@
+{
+  "size": 357,
+  "text": "\n    // All comments will be catched (except when oneline command in last line of document)\n    /*\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    */\n    $inject.source(y aqui lo que sea)\n  ",
+  "tokens": [
+    {
+      "type": "//",
+      "location": [
+        5,
+        92
+      ],
+      "text": "// All comments will be catched (except when oneline command in last line of document)\n",
+      "inner": " All comments will be catched (except when oneline command in last line of document)",
+      "outer": "// All comments will be catched (except when oneline command in last line of document)\n"
+    },
+    {
+      "type": "/*",
+      "location": [
+        96,
+        316
+      ],
+      "text": "/*\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    */",
+      "inner": "\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    ",
+      "outer": "/*\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    */"
+    },
+    {
+      "type": "//",
+      "location": [
+        124,
+        160
+      ],
+      "text": "// can catch inner oneline-comments\n",
+      "inner": " can catch inner oneline-comments",
+      "outer": "// can catch inner oneline-comments\n"
+    },
+    {
+      "type": "//",
+      "location": [
+        171,
+        221
+      ],
+      "text": "// because of the allowInside:true in the options\n",
+      "inner": " because of the allowInside:true in the options",
+      "outer": "// because of the allowInside:true in the options\n"
+    },
+    {
+      "type": "//",
+      "location": [
+        235,
+        310
+      ],
+      "text": "// Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n",
+      "inner": " Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured",
+      "outer": "// Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n"
+    },
+    {
+      "type": "$inject.source(",
+      "location": [
+        321,
+        353
+      ],
+      "text": "$inject.source(y aqui lo que sea)",
+      "inner": "y aqui lo que sea",
+      "outer": "$inject.source(y aqui lo que sea)"
+    }
+  ],
+  "formatted": [
+    {
+      "type": "//",
+      "location": [
+        5,
+        92
+      ],
+      "text": "// All comments will be catched (except when oneline command in last line of document)\n",
+      "inner": " All comments will be catched (except when oneline command in last line of document)",
+      "outer": "// All comments will be catched (except when oneline command in last line of document)\n"
+    },
+    {
+      "type": "/*",
+      "location": [
+        96,
+        316
+      ],
+      "text": "/*\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    */",
+      "inner": "\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    ",
+      "outer": "/*\n      Multiline comments // can catch inner oneline-comments\n      Why? // because of the allowInside:true in the options\n      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n    */"
+    },
+    {
+      "type": "//",
+      "location": [
+        124,
+        160
+      ],
+      "text": "// can catch inner oneline-comments\n",
+      "inner": " can catch inner oneline-comments",
+      "outer": "// can catch inner oneline-comments\n"
+    },
+    {
+      "type": "//",
+      "location": [
+        171,
+        221
+      ],
+      "text": "// because of the allowInside:true in the options\n",
+      "inner": " because of the allowInside:true in the options",
+      "outer": "// because of the allowInside:true in the options\n"
+    },
+    {
+      "type": "//",
+      "location": [
+        235,
+        310
+      ],
+      "text": "// Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n",
+      "inner": " Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured",
+      "outer": "// Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured\n"
+    },
+    {
+      "type": "Inject Source",
+      "inner": "y aqui lo que sea",
+      "location": [
+        321,
+        353
+      ]
+    }
+  ]
+}

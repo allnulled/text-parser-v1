@@ -8,64 +8,24 @@ Importar `text-parser-v1.js`.
 
 ```js
 Ejemplo_del_readme: {
-  const matches = TextParserV1.create([
-    ["/*", "*/", (token, output, index, grammar, grammarIndex, text) => {
-      return { type: "multiline", match: token };
-    }],
-    ["//", "\n", (token, output, index, grammar, grammarIndex, text) => {
-      return { type: "oneline", match: token };
-    }],
-  ]).parse(`
-    // All comments will be catched
-    /* One line and multiline comments */
+  const matches = TextParserV1.create(grammars1.concat([
+    ["//", "\n", null, { /*defaults*/ }],
+    ["/*", "*/", null, { allowInside: true }],
+  ])).parse(`
+    // All comments will be catched (except when oneline command in last line of document)
+    /*
+      Multiline comments // can catch inner oneline-comments
+      Why? // because of the allowInside:true in the options
+      Really? // Yes, this is the 5th inyection detected + 1 lasting = 6 tokens captured
+    */
+    $inject.source(y aqui lo que sea)
   `);
-  console.log(JSON.stringify(matches, null, 2));
+  parser.assert(matches.formatted.length === 6, "Tokenizes default grammars + 2 new improvised grammars");
+  // console.log(JSON.stringify(matches, null, 2));
 }
 ```
 
-Este ejemplo produce esta salida:
-
-```json
-{
-  "size": 71,
-  "text": "\n// All comments will be catched\n/* One line and multiline comments */\n",
-  "tokens": [
-    {
-      "type": "//",
-      "location": "1-33",
-      "text": "// All comments will be catched\n",
-      "inner": " All comments will be catched"
-    },
-    {
-      "type": "/*",
-      "location": "33-70",
-      "text": "/* One line and multiline comments */",
-      "inner": " One line and multiline comments "
-    }
-  ],
-  "formatted": [
-    {
-      "type": "oneline",
-      "match": {
-        "type": "//",
-        "location": "1-33",
-        "text": "// All comments will be catched\n",
-        "inner": " All comments will be catched"
-      }
-    },
-    {
-      "type": "multiline",
-      "match": {
-        "type": "/*",
-        "location": "33-70",
-        "text": "/* One line and multiline comments */",
-        "inner": " One line and multiline comments "
-      }
-    }
-  ]
-}
-
-```
+Generaría una salida como la de [output.txt](./output.txt).
 
 ## Método parse
 
@@ -79,8 +39,8 @@ La firma del parámetro `formatter:Function` es:
 
 - `this:TextParserV1`
 - `token:String`
-- `formattedOutput:Object`
-- `tokenIndex:Integer`
+- `output:Object`
+- `indexToken:Integer`
 - `grammar:Object`
 - `indexGrammar:Integer`
 - `text:String`
@@ -101,13 +61,13 @@ const grammars1 = [
   }],
   ["$import.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Import Js", inner: token.inner, location: token.location };
-  }, {onMatchOffset: () => 1}],
+  }, {allowInside:true}],
   ["$export.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Js", inner: token.inner, location: token.location };
-  }, {onMatchOffset: () => 1}],
+  }, {allowInside:true}],
   ["$export.css(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Css", inner: token.inner, location: token.location };
-  }, {onMatchOffset: () => 1}],
+  }, {allowInside:true}],
   ["/*%", "%*/", (token) => {
     return { type: "Multiline Comment Code Injection", inner: token.inner, location: token.location };
   }],
@@ -122,7 +82,7 @@ const grammars1 = [
   }],
   ["/**", "*/", (token) => {
     return { type: "Javadoc Comment", inner: token.inner, location: token.location };
-  }, {onMatchOffset: () => 1}],
+  }, {allowInside:true}],
 ];
 
 const parser = TextParserV1.create(grammars1);
@@ -182,7 +142,6 @@ Ejemplo_de_fallo_por_no_cierre_en_balanceo_de_parentesis: {
 }
 
 Ejemplo_de_gramaticas_superpuestas: {
-  console.clear();
   const output1 = parser.parse(`$import.js(["./a1.js", "./b1.js", "./c1.js"], function(a,b,c) {
   return {
     previous: [a,b,c],
@@ -191,7 +150,7 @@ Ejemplo_de_gramaticas_superpuestas: {
     c: $inject.source("./i3.js"),
   };
 });`);
-  parser.assert(output1.tokens.length === 4, "Debe poder capturar los tokens internos en las gramáticas que aportan «onMatchOffset === () => 1» en las opciones de definición de gramática");
+  parser.assert(output1.tokens.length === 4, "Debe poder capturar los tokens internos en las gramáticas que aportan «allowInside=true» en las opciones de definición de gramática");
 }
 
 Exportar_a_otras_librerias: {
