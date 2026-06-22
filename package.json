@@ -1,0 +1,13 @@
+{
+  "name": "test-parser-v1",
+  "version": "1.0.0",
+  "main": "text-parser-v1.js",
+  "scripts": {
+    "dev": "bash dev.sh",
+    "test": "node test.js"
+  },
+  "keywords": [],
+  "author": "allnulled",
+  "license": "WTFPL",
+  "description": ""
+}
