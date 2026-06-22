@@ -90,9 +90,9 @@ La firma del parámetro `formatter:Function` es:
 El test de ejemplo es este:
 
 ```js
-const TextParserV1 = require(`${__dirname}/text-parser-v1.js`);
+require(`${__dirname}/text-parser-v1.js`);
 
-const parser = TextParserV1.create([
+const grammars1 = [
   ["$inject.source(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Inject Source", inner: token.inner, location: token.location };
   }],
@@ -101,13 +101,13 @@ const parser = TextParserV1.create([
   }],
   ["$import.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Import Js", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
   ["$export.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Js", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
   ["$export.css(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Css", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
   ["/*%", "%*/", (token) => {
     return { type: "Multiline Comment Code Injection", inner: token.inner, location: token.location };
   }],
@@ -122,8 +122,10 @@ const parser = TextParserV1.create([
   }],
   ["/**", "*/", (token) => {
     return { type: "Javadoc Comment", inner: token.inner, location: token.location };
-  }],
-]);
+  }, {onMatchOffset: () => 1}],
+];
+
+const parser = TextParserV1.create(grammars1);
 
 const output1 = parser.parse(`
 /**
@@ -143,4 +145,61 @@ parser.assert(typeof formatted1[1] === "object", "Outputs a list of objects ( po
 parser.assert(typeof formatted1[2] === "object", "Outputs a list of objects ( point 3 )");
 parser.assert(typeof formatted1[3] === "object", "Outputs a list of objects ( point 4 )");
 parser.assert(formatted1[0].type === "Javadoc Comment", "Catches javadoc comments ( point 5 )");
+
+Ejemplo_del_readme: {
+  const matches = TextParserV1.create(grammars1.concat([
+    ["//", "\n", null],
+    ["/*", "*/", null],
+  ])).parse(`
+// All comments will be catched (except when oneline command in last line of document)
+/* One line and multiline comments */
+$inject.source(y aqui lo que sea)
+`);
+  parser.assert(matches.formatted.length === 3, "Tokenizes default grammars + 2 new improvised grammars");
+  // console.log(JSON.stringify(matches, null, 2));
+}
+
+Ejemplo_de_fallo_por_no_cierre: {
+  let passed = false;
+  try {
+    parser.parse("/**y aqui da igual pero si no cierras se queja");
+  } catch (error) {
+    parser.assert(error.message.startsWith("Unclosed starter of grammar"));
+    passed = true;
+  }
+  parser.assert(passed, `Debe fallar por ausencia de gramática de cierre en gramáricas de final hardcodeado`);
+}
+
+Ejemplo_de_fallo_por_no_cierre_en_balanceo_de_parentesis: {
+  let passed = false;
+  try {
+    parser.parse("$inject.source(y aqui da igual excepto porque no cierras");
+  } catch (error) {
+    parser.assert(error.message.startsWith("Unclosed starter of grammar"));
+    passed = true;
+  }
+  parser.assert(passed, `Debe fallar por ausencia de gramática de cierre en gramaticas de parentesis balanceados`);
+}
+
+Ejemplo_de_gramaticas_superpuestas: {
+  console.clear();
+  const output1 = parser.parse(`$import.js(["./a1.js", "./b1.js", "./c1.js"], function(a,b,c) {
+  return {
+    previous: [a,b,c],
+    a: $inject.source("./i1.js"),
+    b: $inject.source("./i2.js"),
+    c: $inject.source("./i3.js"),
+  };
+});`);
+  parser.assert(output1.tokens.length === 4, "Debe poder capturar los tokens internos en las gramáticas que aportan «onMatchOffset === () => 1» en las opciones de definición de gramática");
+}
+
+Exportar_a_otras_librerias: {
+  try {
+    require("fs").copyFileSync(`${__dirname}/text-parser-v1.js`, `${__dirname}/../moduler-v6/src/text-parser-v1.js`);
+    console.log("[*] Successfully exported to moduler-v6");
+  } catch (error) {
+    console.log(error);
+  }
+}
 ```

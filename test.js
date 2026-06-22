@@ -9,13 +9,13 @@ const grammars1 = [
   }],
   ["$import.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Import Js", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
   ["$export.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Js", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
   ["$export.css(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Css", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
   ["/*%", "%*/", (token) => {
     return { type: "Multiline Comment Code Injection", inner: token.inner, location: token.location };
   }],
@@ -30,7 +30,7 @@ const grammars1 = [
   }],
   ["/**", "*/", (token) => {
     return { type: "Javadoc Comment", inner: token.inner, location: token.location };
-  }],
+  }, {onMatchOffset: () => 1}],
 ];
 
 const parser = TextParserV1.create(grammars1);
@@ -87,4 +87,25 @@ Ejemplo_de_fallo_por_no_cierre_en_balanceo_de_parentesis: {
     passed = true;
   }
   parser.assert(passed, `Debe fallar por ausencia de gramática de cierre en gramaticas de parentesis balanceados`);
+}
+
+Ejemplo_de_gramaticas_superpuestas: {
+  const output1 = parser.parse(`$import.js(["./a1.js", "./b1.js", "./c1.js"], function(a,b,c) {
+  return {
+    previous: [a,b,c],
+    a: $inject.source("./i1.js"),
+    b: $inject.source("./i2.js"),
+    c: $inject.source("./i3.js"),
+  };
+});`);
+  parser.assert(output1.tokens.length === 4, "Debe poder capturar los tokens internos en las gramáticas que aportan «onMatchOffset === () => 1» en las opciones de definición de gramática");
+}
+
+Exportar_a_otras_librerias: {
+  try {
+    require("fs").copyFileSync(`${__dirname}/text-parser-v1.js`, `${__dirname}/../moduler-v6/src/text-parser-v1.js`);
+    console.log("[*] Successfully exported to moduler-v6");
+  } catch (error) {
+    console.log(error);
+  }
 }

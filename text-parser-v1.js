@@ -22,13 +22,17 @@
     constructor(grammars = []) {
       for (let index = 0; index < grammars.length; index++) {
         const grammar = grammars[index];
-        if((typeof grammar[2] === "undefined") || (grammar[2] === null)) {
+        if ((typeof grammar[2] === "undefined") || (grammar[2] === null)) {
           grammar[2] = it => it;
+        }
+        if ((typeof grammar[3] === "undefined") || (grammar[3] === null)) {
+          grammar[3] = {};
         }
         this.assert(typeof grammar === "object", `Grammar «${index}» must be object`);
         this.assert(typeof grammar[0] === "string", `Item «0» in grammar «${index}» must be string`);
         this.assert(typeof grammar[1] === "string" || typeof grammar[1] === "object", `Item «1» in grammar «${index}» must be string or object`);
         this.assert(typeof grammar[2] === "function", `Item «2» in grammar «${index}» must be function`);
+        this.assert(typeof grammar[3] === "object", `Item «3» in grammar «${index}» must be object`);
       }
       this.grammars = grammars;
     }
@@ -38,14 +42,14 @@
       return output;
     }
     _processTokens(text, tokens) {
-      const formattedOutput = {size:text.length,text,tokens,formatted:[]};
+      const formattedOutput = { size: text.length, text, tokens, formatted: [] };
       Iterating_tokens:
-      for(let indexToken = 0; indexToken < tokens.length; indexToken++) {
+      for (let indexToken = 0; indexToken < tokens.length; indexToken++) {
         const token = tokens[indexToken];
         Iterating_grammars:
-        for(let indexGrammar=0; indexGrammar<this.grammars.length; indexGrammar++) {
+        for (let indexGrammar = 0; indexGrammar < this.grammars.length; indexGrammar++) {
           const grammar = this.grammars[indexGrammar];
-          if(grammar[0] === token.type) {
+          if (grammar[0] === token.type) {
             const formattedToken = grammar[2].call(this, token, formattedOutput, indexToken, grammar, indexGrammar, text);
             formattedOutput.formatted.push(formattedToken);
             break Iterating_grammars;
@@ -64,57 +68,65 @@
         Iterating_grammars:
         for (let index = 0; index < this.grammars.length; index++) {
           const grammar = this.grammars[index];
-          const [starter, ender] = grammar;
+          const [starter, ender, formatter, options] = grammar;
           const isMatchingStarter = text.startsWith(starter, state.position);
+          On_not_matched:
+          if (!isMatchingStarter) {
+            continue Iterating_grammars;
+          }
+          const countingFrom = state.position + starter.length;
+          let offset = 0;
+          let wasEnded = false;
           Processing_match:
-          if (isMatchingStarter) {
-            const countingFrom = state.position + starter.length;
-            let offset = 0;
+          if (typeof ender === "string") {
+            while ((countingFrom + offset) < text.length) {
+              const currentPosition = countingFrom + offset;
+              const isMatchingEnder = text.startsWith(ender, currentPosition);
+              if (isMatchingEnder) {
+                wasEnded = true;
+                state.output.push({
+                  type: starter,
+                  location: [state.position, currentPosition + ender.length],
+                  text: text.substring(state.position, currentPosition + ender.length),
+                  inner: text.substring(countingFrom, currentPosition),
+                  outer: text.substring(state.position, currentPosition + ender.length),
+                });
+                break Processing_match;
+              }
+              offset++;
+            }
+            if (!wasEnded) throw new Error(`Unclosed starter of grammar «${starter}» reached end of text but «${ender}» was not found on grammar index «${index}»`);
+          } else if (ender === this.constructor.symbols.PARENTHESYS_BALANCE) {
+            let openedParenthesys = 1;
             let wasEnded = false;
-            if (typeof ender === "string") {
-              while ((countingFrom + offset) < text.length) {
-                const currentPosition = countingFrom + offset;
-                const isMatchingEnder = text.startsWith(ender, currentPosition);
-                if (isMatchingEnder) {
+            while ((countingFrom + offset) < text.length) {
+              const currentPosition = countingFrom + offset;
+              // @TODO: meterse dentro de los strings y escapar paréntesis internos
+              if (text[currentPosition] === "(") {
+                openedParenthesys++;
+              } else if (text[currentPosition] === ")") {
+                openedParenthesys--;
+                if (openedParenthesys === 0) {
                   wasEnded = true;
                   state.output.push({
                     type: starter,
-                    location: [state.position, currentPosition+ender.length],
-                    text: text.substring(state.position, currentPosition+ender.length),
+                    location: [state.position, currentPosition],
+                    text: text.substring(state.position, currentPosition + 1),
                     inner: text.substring(countingFrom, currentPosition),
+                    outer: text.substring(state.position, currentPosition + 1),
                   });
                   break Processing_match;
                 }
-                offset++;
               }
-              if(!wasEnded) throw new Error(`Unclosed starter of grammar «${starter}» reached end of text but «${ender}» was not found on grammar index «${index}»`);
-            } else if(ender === this.constructor.symbols.PARENTHESYS_BALANCE) {
-              let openedParenthesys = 1;
-              let wasEnded = false;
-              while ((countingFrom + offset) < text.length) {
-                const currentPosition = countingFrom + offset;
-                // @TODO: meterse dentro de los strings y escapar paréntesis internos
-                if(text[currentPosition] === "(") {
-                  openedParenthesys++;
-                } else if(text[currentPosition] === ")") {
-                  openedParenthesys--;
-                  if(openedParenthesys === 0) {
-                    wasEnded = true;
-                    state.output.push({
-                      type: starter,
-                      location: [state.position, currentPosition],
-                      text: text.substring(state.position, currentPosition),
-                      inner: text.substring(countingFrom, currentPosition),
-                    });
-                    break Processing_match;
-                  }
-                }
-                offset++;
-              }
-              if(!wasEnded) throw new Error(`Unclosed starter of grammar «${starter}» reached end of text but the first parenthesys was not closed on grammar index «${index}»`);
-            } else {
-              throw new Error(`Ender of grammar ${index} is not valid`);
+              offset++;
             }
+            if (!wasEnded) throw new Error(`Unclosed starter of grammar «${starter}» reached end of text but the first parenthesys was not closed on grammar index «${index}»`);
+          } else {
+            throw new Error(`Ender (2nd argument) of grammar «${starter}» at grammar index «${index}» has not valid type: «${typeof ender}»`);
+          }
+          if (typeof options.onMatchOffset === "function") {
+            state.position += options.onMatchOffset.call(this, { text, state, grammar, });
+          } else {
             state.position += offset;
           }
         }

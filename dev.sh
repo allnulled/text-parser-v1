@@ -9,6 +9,7 @@ pwd > cwd.txt
 
 /usr/bin/refrescador \
     -w "$(pwd)" \
+    -p "3008" \
     -i "**/node_modules/**/*" \
     -i "**/dist/**/*" \
     -i "**/*.dist.*" \
