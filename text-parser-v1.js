@@ -129,7 +129,7 @@
                 openedParenthesys--;
                 if (openedParenthesys === 0) {
                   wasEnded = true;
-                  this._pushToken({ state, starter, currentPosition, countingFrom, text,enderLength: 1, extraOffset: this._getAppendixOffset(text, grammar, currentPosition, ender) });
+                  this._pushToken({ state, starter, currentPosition, countingFrom, text, enderLength: 0, extraOffset: this._getAppendixOffset(text, grammar, currentPosition, ender) });
                   break Processing_match;
                 }
               }
