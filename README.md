@@ -203,4 +203,3 @@ Los parámetros de cada gramática son:
          - El linter dejará de quejarse por el hueco
          - El parser entiende que ese "template" se tiene que ir con el reemplazo del match
          - El código final será JS-compliant, pero, con esto, el código de la plantilla también puede serlo
-
