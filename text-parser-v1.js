@@ -40,7 +40,13 @@
           this.assert(typeof grammar[3].allowInside === "boolean", `Property «allowInside» in item «3» in grammar «${index}» must be boolean or none`);
         }
         if(("includeAppendix" in grammar[3]) && (typeof grammar[3].includeAppendix !== "undefined")) {
-          this.assert(["string","function"].includes(typeof grammar[3].includeAppendix), `Property «includeAppendix» in item «3» in grammar «${index}» must be string or function or none`);
+          if(Array.isArray(grammar[3].includeAppendix)) {
+            for(let appendixIndex=0; appendixIndex<grammar[3].includeAppendix.length; appendixIndex++) {
+              this.assert(["string","function"].includes(typeof grammar[3].includeAppendix[appendixIndex]), `Property «includeAppendix» in item «3» in grammar «${index}» and in index «${appendixIndex}» must be string or function or none`);
+            }
+          } else {
+            this.assert(["string","function"].includes(typeof grammar[3].includeAppendix), `Property «includeAppendix» in item «3» in grammar «${index}» must be array, string or function or none`);
+          }
         }
       }
       this.grammars = grammars;
@@ -51,9 +57,11 @@
       return output;
     }
     _getAppendixOffset(text, grammar, currentPosition, ender) {
-      if(grammar[3].includeAppendix) {
-        if(text.startsWith(grammar[3].includeAppendix, currentPosition + ender.length)) {
-          return grammar[3].includeAppendix.length;
+      const allAppendixes = Array.isArray(grammar[3].includeAppendix) ? grammar[3].includeAppendix : [grammar[3].includeAppendix];
+      for(let appendixIndex=0; appendixIndex<allAppendixes.length; appendixIndex++) {
+        const oneAppendix = allAppendixes[appendixIndex];
+        if(text.startsWith(oneAppendix, currentPosition + ender.length)) {
+          return oneAppendix.length;
         }
       }
       return 0;

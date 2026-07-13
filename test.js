@@ -9,13 +9,13 @@ const grammars1 = [
   }],
   ["$import.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Import Js", inner: token.inner, location: token.location };
-  }, {allowInside:true}],
+  }, { allowInside: true }],
   ["$export.js(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Js", inner: token.inner, location: token.location };
-  }, {allowInside:true}],
+  }, { allowInside: true }],
   ["$export.css(", TextParserV1.symbols.PARENTHESYS_BALANCE, (token) => {
     return { type: "Export Css", inner: token.inner, location: token.location };
-  }, {allowInside:true}],
+  }, { allowInside: true }],
   ["/*%", "%*/", (token) => {
     return { type: "Multiline Comment Code Injection", inner: token.inner, location: token.location };
   }],
@@ -30,7 +30,7 @@ const grammars1 = [
   }],
   ["/**", "*/", (token) => {
     return { type: "Javadoc Comment", inner: token.inner, location: token.location };
-  }, {allowInside:true}],
+  }, { allowInside: true }],
 ];
 
 const parser = TextParserV1.create(grammars1);
@@ -106,14 +106,37 @@ Ejemplo_de_gramaticas_superpuestas: {
 }
 
 Ejemplo_de_gramaticas_con_apendice: {
-  const output1 = TextParserV1.create([
+  const parser2 = TextParserV1.create([
     ["/*@=", "*/", null, {
       allowInside: false,
       includeAppendix: '"template"',
-    }]
-  ]).parse(`aqui lo que quieras /*@=this can be whatever*/"template" y aqui lo que quieras`);
-  parser.assert(output1.tokens[0].outer.endsWith('*/"template"'), "Debe poder incluir el apéndice de graḿatica en el token");
-  parser.assert(!output1.tokens[0].inner.includes('"template"'), "Debe retornar un inner que no contemple el apéndice");
+    }],
+    ["/*@!", "*/", null, {
+      allowInside: false,
+      includeAppendix: ['"template"', "0", "() {}"],
+    }],
+  ]);
+
+  Caso_parametro_string: {
+    const output1 = parser2.parse(`aqui lo que quieras /*@=this can be whatever*/"template" y aqui lo que quieras`);
+    parser.assert(output1.tokens[0].outer.endsWith('*/"template"'), "Debe poder incluir el apéndice de graḿatica en el token");
+    parser.assert(!output1.tokens[0].inner.includes('"template"'), "Debe retornar un inner que no contemple el apéndice");
+  }
+
+  Caso_parametro_array: {
+    const output1 = parser2.parse(`aqui lo que quieras /*@!this can be whatever*/"template" y aqui lo que quieras`);
+    parser.assert(output1.tokens[0].outer.endsWith('*/"template"'), "Parametro array prueba 1");
+    parser.assert(!output1.tokens[0].inner.includes('"template"'), "Parametro array prueba 2");
+    
+    const output2 = parser2.parse(`aqui lo que quieras /*@!this can be whatever*/0 y aqui lo que quieras`);
+    parser.assert(output2.tokens[0].outer.endsWith('*/0'), "Parametro array prueba 3");
+    parser.assert(!output2.tokens[0].inner.includes('0'), "Parametro array prueba 4");
+    
+    const output3 = parser2.parse(`aqui lo que quieras /*@!this can be whatever*/() {} y aqui lo que quieras`);
+    parser.assert(output3.tokens[0].outer.endsWith('*/() {}'), "Parametro array prueba 5");
+    parser.assert(!output3.tokens[0].inner.includes('() {}'), "Parametro array prueba 6");
+  }
+
 }
 
 console.log("[*] Tests passed successfully");
