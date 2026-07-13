@@ -68,7 +68,7 @@ Ejemplo_del_readme: {
     $inject.source(y aqui lo que sea)
   `);
   parser.assert(matches.formatted.length === 6, "Tokenizes default grammars + 2 new improvised grammars");
-  console.log(JSON.stringify(matches, null, 2));
+  // console.log(JSON.stringify(matches, null, 2));
 }
 
 Ejemplo_de_fallo_por_no_cierre: {
@@ -95,19 +95,32 @@ Ejemplo_de_fallo_por_no_cierre_en_balanceo_de_parentesis: {
 
 Ejemplo_de_gramaticas_superpuestas: {
   const output1 = parser.parse(`$import.js(["./a1.js", "./b1.js", "./c1.js"], function(a,b,c) {
-  return {
-    previous: [a,b,c],
-    a: $inject.source("./i1.js"),
-    b: $inject.source("./i2.js"),
-    c: $inject.source("./i3.js"),
-  };
-});`);
+    return {
+      previous: [a,b,c],
+      a: $inject.source("./i1.js"),
+      b: $inject.source("./i2.js"),
+      c: $inject.source("./i3.js"),
+    };
+  });`);
   parser.assert(output1.tokens.length === 4, "Debe poder capturar los tokens internos en las gramáticas que aportan «allowInside=true» en las opciones de definición de gramática");
 }
 
+Ejemplo_de_gramaticas_con_apendice: {
+  const output1 = TextParserV1.create([
+    ["/*@=", "*/", null, {
+      allowInside: false,
+      includeAppendix: '"template"',
+    }]
+  ]).parse(`aqui lo que quieras /*@=this can be whatever*/"template" y aqui lo que quieras`);
+  parser.assert(output1.tokens[0].outer.endsWith('*/"template"'), "Debe poder incluir el apéndice de graḿatica en el token");
+  parser.assert(!output1.tokens[0].inner.includes('"template"'), "Debe retornar un inner que no contemple el apéndice");
+}
+
+console.log("[*] Tests passed successfully");
+
 Exportar_a_otras_librerias: {
   try {
-    require("fs").copyFileSync(`${__dirname}/text-parser-v1.js`, `${__dirname}/../moduler-v6/src/text-parser-v1.js`);
+    require("fs").copyFileSync(`${__dirname}/text-parser-v1.js`, `${__dirname}/../moduler-v6/src/lib/text-parser-v1.js`);
     console.log("[*] Successfully exported to moduler-v6");
   } catch (error) {
     console.log(error);
